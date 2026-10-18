@@ -2,8 +2,8 @@
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO Joker-Principal/pylai
-    REF 2c35e6d41a6b51c5de1e9bd3bb7db409fe1bb7d1
-    SHA512 2dfa8ce6bd2fc70a4c2d6dd8dccb57f6fc21f2abc2194772700c0260d318f08d5e9f3a4084cd3d9122fdfd1752364a256bdcc95230216494fd9ee382675d00bb
+    REF 55dad0c23a6d7831910e4c6b61c03f69cc5862eb
+    SHA512 868b823d0a480b74cfef8fef2778df91a8e340e5aef83fca66dc1a892cee0b6d0577628c1f19483fcc6f6afecb0e8e96c5838e3eed0b9b102986e494fc96251f
     HEAD_REF master
 )
 
