@@ -108,7 +108,7 @@ jobs:
           echo "sha512=$(sha512sum "$RUNNER_TEMP/source.tar.gz" | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
 
       - name: Checkout registry
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: ${{ inputs.registry }}
           ref: ${{ inputs.registry-branch }}
