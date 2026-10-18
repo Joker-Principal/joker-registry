@@ -90,8 +90,9 @@ jobs:
             branch=$(curl -fsS "${auth[@]}" "$api" | jq -r .default_branch)
           fi
           status=$(curl -fsS "${auth[@]}" "$api/compare/${SHA}...${branch}" | jq -r .status)
+          # ahead/identical：tag 的 commit 是 branch 的祖先（GitHub 的 status 描述的是 head 相对 base）
           case "$status" in
-            behind|identical) ;;
+            ahead|identical) ;;
             *) echo "::error::${SHA} 不在 ${branch} 上（compare status=${status}），拒绝发布未合入的 tag"; exit 1 ;;
           esac
 
