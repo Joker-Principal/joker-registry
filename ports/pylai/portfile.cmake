@@ -1,9 +1,11 @@
-# pylai 暂无 release / tag ⇒ 钉 commit（推了新版本就把 REF + SHA512 一起换掉）。
+set(PYLAI_REF "c95decbfb4fd7516aa6c60dab9988f853e8d767b")
+set(PYLAI_SHA512 "08ee30bab9746838a98bb824eee9c3594cb9b3dee4522befdb416ea27209a1a0a161c335e013eab17d1a653cada0822e9bba20b8a6448e7fd7f33fa4fa5bfb78")
+
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO Joker-Principal/pylai
-    REF 52ec2b0e83ff1eec056e8455234f0edb1ae99c4e
-    SHA512 035c0f3caf97e7666b7b31f5747bb9a1640c08da5c962511eca3ff225e7420b286e39c498d46f4680557ec440a832dbab7b623baa8abc44a9140aeb9d1ab063e
+    REF "${PYLAI_REF}"
+    SHA512 "${PYLAI_SHA512}"
     HEAD_REF master
 )
 
