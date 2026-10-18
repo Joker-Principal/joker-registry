@@ -4,11 +4,11 @@
 
 ## 里面有什么
 
-| 端口 | 说明 |
-|---|---|
+| 端口    | 说明                                               |
+| ---     | ---                                                |
 | `pylai` | HTTP 服务器框架（standalone asio + C++20 modules） |
-| `jk` | Joker's C++ Kit（`import jk;`），`pylai` 的依赖 |
-| `asio` | **第三方**，为 `pylai` 钉定到 1.38.2（内置端口停在 1.32.0） |
+| `jk`    | Joker's C++ Kit（`import jk;`），`pylai` 的依赖    |
+| `asio`  | 最新版的 asio                                      |
 
 ## 消费方怎么用
 
@@ -26,12 +26,6 @@
   ]
 }
 ```
-
-- `packages` **三个都要列**：漏 `jk` 找不到端口；漏 `asio` 会退回内置 1.32，`pylai` 编不过。
-- 项目的 `vcpkg.json` 还需要 `builtin-baseline`（版本化模式的要求）。
-- `pylai` 的 C++20 modules 由**消费方**自己生成 BMI ⇒ 消费方要 C++23 + Ninja / Ninja Multi-Config。
-- Linux 上 clang 与 GCC 都可以 —— **前提是本端口的 `REF` 已包含 S1-R21 的修复**（`asio.cpp` 去掉 `module asio;`、
-  三个 TU 补 `<tuple>` / `<typeinfo>`）。更早的 `REF` 在 GCC 上会因“模块附属实体强定义冲突 + 缺头”而编不过。
 
 ## 维护（加/更新端口）
 
