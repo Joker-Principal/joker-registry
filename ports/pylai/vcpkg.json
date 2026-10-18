@@ -1,0 +1,45 @@
+{
+  "name": "pylai",
+  "version": "0.1.0",
+  "description": "HTTP server framework built on standalone asio and C++20 modules",
+  "homepage": "https://github.com/Joker-Principal/pylai",
+  "dependencies": [
+    {
+      "name": "asio",
+      "features": [
+        "spawn",
+        "ssl"
+      ]
+    },
+    {
+      "name": "boost-asio",
+      "features": [
+        "spawn",
+        "ssl"
+      ]
+    },
+    "fmt",
+    "jk",
+    {
+      "name": "liburing",
+      "platform": "linux"
+    },
+    "llhttp",
+    "openssl",
+    {
+      "name": "pkgconf",
+      "host": true,
+      "platform": "linux"
+    },
+    "plf-hive",
+    "spdlog",
+    {
+      "name": "vcpkg-cmake",
+      "host": true
+    },
+    {
+      "name": "vcpkg-cmake-config",
+      "host": true
+    }
+  ]
+}
