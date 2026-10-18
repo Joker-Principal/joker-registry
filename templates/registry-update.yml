@@ -1,0 +1,23 @@
+name: Publish <port> to joker-registry
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "要发布的 tag（例如 v1.2.3）"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    uses: Joker-Principal/joker-registry/.github/workflows/update-port.yml@master
+    with:
+      port: <port>
+      tag: ${{ inputs.tag }}
+    secrets:
+      registry-token: ${{ secrets.JOKER_REGISTRY_AUTO_UPDATE }}
