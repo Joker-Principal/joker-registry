@@ -9,8 +9,8 @@
       "port-version": 0
     },
     "pylai": {
-      "baseline": "0.1.5",
-      "port-version": 1
+      "baseline": "0.1.6",
+      "port-version": 0
     }
   }
 }
