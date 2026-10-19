@@ -9,12 +9,18 @@ vcpkg_from_github(
     HEAD_REF master
 )
 
+set(JK_CXX_STANDARD "20")
+if("cxx23" IN_LIST FEATURES)
+    set(JK_CXX_STANDARD "23")
+endif()
+
 # jk 自己 include(CTest) 并把 BUILD_TESTING 默认成 ON ⇒ 显式关掉。
 vcpkg_cmake_configure(
     SOURCE_PATH "${SOURCE_PATH}"
     OPTIONS
         -DBUILD_TESTING=OFF
         -DJK_BUILD_TESTING=OFF
+        -DJK_CXX_STANDARD=${JK_CXX_STANDARD}
 )
 
 vcpkg_cmake_install()

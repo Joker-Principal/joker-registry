@@ -1,6 +1,7 @@
 {
   "name": "jk",
   "version": "2.2.0",
+  "port-version": 1,
   "description": "Joker's C++ Kit",
   "homepage": "https://github.com/Joker-Principal/jk",
   "license": "MIT",
@@ -13,5 +14,10 @@
       "name": "vcpkg-cmake-config",
       "host": true
     }
-  ]
+  ],
+  "features": {
+    "cxx23": {
+      "description": "Build and consume jk with C++23 instead of the default C++20"
+    }
+  }
 }
