@@ -47,7 +47,7 @@ git add versions && git commit -m "versions: <name> <version>" && git push
 
 ## 源仓接自动发布
 
-逻辑只在 `.github/workflows/update-port.yml`（`on: workflow_call`）里。新项目接入三步：
+逻辑在 `.github/workflows/update-port.yml`（`on: workflow_call`，只负责检出 registry 并调用脚本）和 `.github/scripts/update-port.py`（纯 Python：解析 tag、校验、算 SHA512、改端口、提交推送，只依赖标准库和 git）。新项目接入三步：
 
 1. 端口里的 pin 写成两行变量（CI 只替换这两行，不做跨行正则）：
 
@@ -62,8 +62,9 @@ git add versions && git commit -m "versions: <name> <version>" && git push
 
 之后推 `v*` tag 即自动发布。判 `v*` 的 workflow 文件必须在被 tag 的 commit 里；否则用 `workflow_dispatch` 补发一次。
 
-CI 做的事：解析 tag 到 40 位 sha → 校验 tag 在源仓默认分支上、且该版本没以不同内容发布过 → 按 sha 下载 archive 算 SHA512 → 改 `ports/<port>` → 提交 ports → `x-add-version` → 提交 versions → rebase 后 push。
+CI 做的事：解析 tag 到 40 位 sha → 校验 tag 在源仓默认分支上、且该版本没以不同内容发布过 → 按 sha 下载 archive 算 SHA512 → 改 `ports/<port>`（REF/SHA512/version，并把源仓该 commit 上 `vcpkg.json` 的 `features` 合并进端口清单）→ 提交 ports → `x-add-version` → 提交 versions → rebase 后 push。
 
+- 端口清单的 `features` 以源仓 `vcpkg.json` 为准：同名 feature 会被覆盖，端口专有 feature（如 `cxx23`）保留；源仓没有 `vcpkg.json` 时只跳过这一步。
 - CI 不构建端口，能否编过要本地先确认。
 - 多个源仓同时发布会在 registry 上撞写，靠 `pull --rebase` + 5 次重试兜底，真冲突会失败。
 
