@@ -62,7 +62,7 @@ git add versions && git commit -m "versions: <name> <version>" && git push
 
 之后推 `v*` tag 即自动发布。判 `v*` 的 workflow 文件必须在被 tag 的 commit 里；否则用 `workflow_dispatch` 补发一次。
 
-CI 做的事：解析 tag 到 40 位 sha → 校验 tag 在源仓默认分支上、且该版本没以不同内容发布过 → 按 sha 下载 archive 算 SHA512 → 改 `ports/<port>`（REF/SHA512/version，并把源仓该 commit 上 `vcpkg.json` 的 `features` 合并进端口清单）→ 提交 ports → `x-add-version` → 提交 versions → rebase 后 push。
+CI 做的事：解析 tag 到 40 位 sha → 校验 tag 在源仓默认分支上、且该版本没以不同内容发布过 → 按 sha 下载 archive 算 SHA512 → 改 `ports/<port>`（REF/SHA512/version，并把源仓该 commit 上 `vcpkg.json` 的 `features` 合并进端口清单）→ `vcpkg format-manifest` 按规范排版 → 提交 ports → `x-add-version` → 提交 versions → rebase 后 push。
 
 - 端口清单的 `features` 以源仓 `vcpkg.json` 为准：同名 feature 会被覆盖，端口专有 feature（如 `cxx23`）保留；源仓没有 `vcpkg.json` 时只跳过这一步。
 - CI 不构建端口，能否编过要本地先确认。

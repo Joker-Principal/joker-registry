@@ -15,6 +15,7 @@ import hashlib
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -169,15 +170,31 @@ def commit(repo: Path, message: str) -> None:
         "commit", "-m", message, cwd=repo)
 
 
-def add_version(repo: Path, port: str) -> None:
+def locate_vcpkg() -> Path:
     root = os.environ.get("VCPKG_INSTALLATION_ROOT", "")
-    work = Path(os.environ.get("RUNNER_TEMP") or tempfile.mkdtemp())
-    vcpkg = Path(root) / "vcpkg" if root else work / "vcpkg"
-    if not vcpkg.is_file():
-        notice("未找到 vcpkg，临时克隆一份")
-        run("git", "clone", "--depth", "1", "https://github.com/microsoft/vcpkg.git", str(vcpkg))
-        run(str(vcpkg / "bootstrap-vcpkg.sh"), "-disableMetrics")
+    if root:
+        for name in ("vcpkg", "vcpkg.exe"):
+            candidate = Path(root) / name
+            if candidate.is_file():
+                return candidate
+    found = shutil.which("vcpkg")
+    if found:
+        return Path(found)
 
+    work = Path(os.environ.get("RUNNER_TEMP") or tempfile.mkdtemp())
+    vcpkg = work / "vcpkg"
+    notice("未找到 vcpkg，临时克隆一份")
+    run("git", "clone", "--depth", "1", "https://github.com/microsoft/vcpkg.git", str(vcpkg))
+    run(str(vcpkg / "bootstrap-vcpkg.sh"), "-disableMetrics")
+    return vcpkg
+
+
+def format_manifest(repo: Path, vcpkg: Path, port: str) -> None:
+    # 端口清单是脚本拼出来的，先按 vcpkg 规范排版，否则 x-add-version 会拒绝
+    run(str(vcpkg), "format-manifest", f"ports/{port}/vcpkg.json", cwd=repo)
+
+
+def add_version(repo: Path, vcpkg: Path, port: str) -> None:
     run(str(vcpkg), "x-add-version",
         "--x-builtin-ports-root=./ports",
         "--x-builtin-registry-versions-dir=./versions",
@@ -243,13 +260,16 @@ def main() -> int:
     rewrite_portfile(port_dir / "portfile.cmake", sha, sha512)
     rewrite_manifest(port_dir / "vcpkg.json", version, source_manifest)
 
+    vcpkg = locate_vcpkg()
+    format_manifest(repo, vcpkg, args.port)
+
     run("git", "add", "-A", "--", f"ports/{args.port}", cwd=repo)
     if not has_staged(repo, f"ports/{args.port}"):
         notice(f"ports/{args.port} 无改动")
         return 0
     commit(repo, f"ports: {args.port} {version}")
 
-    add_version(repo, args.port)
+    add_version(repo, vcpkg, args.port)
     run("git", "add", "-A", "--", "versions", cwd=repo)
     if has_staged(repo, "versions"):
         commit(repo, f"versions: {args.port} {version}")
