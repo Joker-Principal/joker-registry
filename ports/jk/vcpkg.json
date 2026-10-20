@@ -1,6 +1,6 @@
 {
   "name": "jk",
-  "version": "2.4.1",
+  "version": "2.5.0",
   "description": "Joker's C++ Kit",
   "homepage": "https://github.com/Joker-Principal/jk",
   "license": "MIT",
@@ -30,6 +30,12 @@
             "wchar"
           ]
         }
+      ]
+    },
+    "sqlite": {
+      "description": "sqlite3 support",
+      "dependencies": [
+        "sqlite3"
       ]
     }
   }
