@@ -123,18 +123,33 @@ def rewrite_portfile(portfile: Path, sha: str, sha512: str) -> None:
     portfile.write_text(text, encoding="utf-8")
 
 
-def rewrite_manifest(manifest: Path, version: str, source_manifest: dict | None) -> None:
-    mtext = manifest.read_text(encoding="utf-8")
-    mtext, n = re.subn(r'^(\s*)"version": "[^"]*"(,?)$',
-                       rf'\1"version": "{version}"\2', mtext, count=1, flags=re.M)
-    if n != 1:
-        fail(f"{manifest.as_posix()} 中找不到 version 字段")
-    # 发布新版本时 port-version 归零，而 vcpkg 的惯例是省略 0
-    mtext, n = re.subn(r',\s*\n\s*"port-version": \d+', "", mtext, count=1)
-    if n == 0:
-        mtext, n = re.subn(r'"port-version": \d+,?\s*\n\s*', "", mtext, count=1)
+def ordered_manifest(obj: dict) -> dict:
+    """把 version 摆到 name 之后：清单是新拼出来的，键序仍需贴合 vcpkg 的惯例。"""
+    ordered = {}
+    for key, value in obj.items():
+        if key == "version":
+            continue
+        ordered[key] = value
+        if key == "name":
+            ordered["version"] = obj["version"]
+    ordered.setdefault("version", obj["version"])
+    return ordered
 
-    obj = json.loads(mtext)
+
+def rewrite_manifest(manifest: Path, version: str, source_manifest: dict | None) -> None:
+    obj = json.loads(manifest.read_text(encoding="utf-8"))
+
+    # 版本号唯一来源是 tag：端口清单里可能压根没有 version 字段，直接补上；
+    # 别的版本方案（version-semver 等）语义不同，脚本不替用户决定，直接拒绝
+    for scheme in ("version-semver", "version-date", "version-string"):
+        if scheme in obj:
+            fail(f"{manifest.as_posix()} 用的是 {scheme}，本脚本只写 version")
+    previous = obj.get("version")
+    if previous != version:
+        print(f"set version: {previous or '<missing>'} -> {version}")
+    obj["version"] = version
+    # 发布新版本时 port-version 归零，而 vcpkg 的惯例是省略 0
+    obj.pop("port-version", None)
 
     # 源仓 vcpkg.json 的 features 是「这个包支持哪些特性」的唯一事实来源：
     # 同名 feature 以源仓为准覆盖，端口专有 feature（如 cxx23）保留。
@@ -146,7 +161,10 @@ def rewrite_manifest(manifest: Path, version: str, source_manifest: dict | None)
                 print(f"sync feature: {name}")
                 features[name] = spec
 
-    manifest.write_text(json.dumps(obj, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    manifest.write_text(
+        json.dumps(ordered_manifest(obj), indent=2, ensure_ascii=False) + "\n",
+        encoding="utf-8",
+    )
 
 
 def find_released(repo: Path, port: str, version: str) -> str:
@@ -244,6 +262,10 @@ def main() -> int:
         if exc.code != 404:
             fail(str(exc))
         notice(f"源仓在 {sha} 上没有 vcpkg.json，端口清单不同步 features")
+
+    source_version = (source_manifest or {}).get("version")
+    if source_version and source_version != version:
+        warning(f"源仓 vcpkg.json 的 version 是 {source_version}，端口清单以 tag 的 {version} 为准")
 
     # 同 version+port-version 已发布过：内容一致就跳过；不一致说明 tag 被移动过
     tree = run("git", "rev-parse", f"HEAD:ports/{args.port}",
