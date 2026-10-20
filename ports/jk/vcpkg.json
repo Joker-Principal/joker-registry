@@ -1,6 +1,6 @@
 {
   "name": "jk",
-  "version": "2.4.0",
+  "version": "2.4.1",
   "description": "Joker's C++ Kit",
   "homepage": "https://github.com/Joker-Principal/jk",
   "license": "MIT",
@@ -17,6 +17,20 @@
   "features": {
     "cxx23": {
       "description": "Build and consume jk with C++23 instead of the default C++20"
+    },
+    "log": {
+      "description": "spdlog support",
+      "dependencies": [
+        "fmt",
+        {
+          "name": "spdlog",
+          "features": [
+            "fmt",
+            "tz-offset",
+            "wchar"
+          ]
+        }
+      ]
     }
   }
 }
