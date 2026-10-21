@@ -1,6 +1,6 @@
 {
   "name": "pylai",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "HTTP server framework built on standalone asio and C++20 modules",
   "homepage": "https://github.com/Joker-Principal/pylai",
   "dependencies": [
