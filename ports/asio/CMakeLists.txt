@@ -8,6 +8,10 @@ if(Threads_FOUND)
     target_link_libraries(asio INTERFACE Threads::Threads)
 endif()
 
+if(MINGW)
+    target_link_libraries(asio INTERFACE ws2_32 mswsock bcrypt)
+endif()
+
 # Export target
 install(TARGETS asio
     EXPORT asio
