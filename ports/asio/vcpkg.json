@@ -1,7 +1,7 @@
 {
   "name": "asio",
   "version": "1.38.2",
-  "port-version": 1,
+  "port-version": 2,
   "description": "Asio is a cross-platform C++ library for network and low-level I/O programming that provides developers with a consistent asynchronous model using a modern C++ approach.",
   "homepage": "https://think-async.com/Asio/",
   "documentation": "https://think-async.com/Asio/Documentation.html",
@@ -17,6 +17,15 @@
     }
   ],
   "features": {
+    "io-uring": {
+      "description": "Linux io_uring backend. Adds the liburing dependency; the consumer still defines ASIO_HAS_IO_URING (kernel 5.10+ required) and links uring.",
+      "dependencies": [
+        {
+          "name": "liburing",
+          "platform": "linux"
+        }
+      ]
+    },
     "regex": {
       "description": "Boost.Regex (optional) if you use any of the read_until() or async_read_until() overloads that take a boost::regex parameter.",
       "dependencies": [
