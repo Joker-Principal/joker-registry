@@ -2,7 +2,7 @@
   "default": {
     "asio": {
       "baseline": "1.38.2",
-      "port-version": 1
+      "port-version": 2
     },
     "jk": {
       "baseline": "2.6.2",
