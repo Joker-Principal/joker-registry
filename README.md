@@ -62,9 +62,10 @@ git add versions && git commit -m "versions: <name> <version>" && git push
 
 之后推 `v*` tag 即自动发布。判 `v*` 的 workflow 文件必须在被 tag 的 commit 里；否则用 `workflow_dispatch` 补发一次。
 
-CI 做的事：解析 tag 到 40 位 sha → 校验 tag 在源仓默认分支上、且该版本没以不同内容发布过 → 按 sha 下载 archive 算 SHA512 → 改 `ports/<port>`（REF/SHA512，把 tag 的版本号写进 `vcpkg.json`，并把源仓该 commit 上 `vcpkg.json` 的 `features` 合并进端口清单）→ `vcpkg format-manifest` 按规范排版 → 提交 ports → `x-add-version` → 提交 versions → rebase 后 push。
+CI 做的事：解析 tag 到 40 位 sha → 校验 tag 在源仓默认分支上、且该版本没以不同内容发布过 → 按 sha 下载 archive 算 SHA512 → 改 `ports/<port>`（REF/SHA512，把 tag 的版本号写进 `vcpkg.json`，并把源仓该 commit 上 `vcpkg.json` 的 `dependencies` 与 `features` 同步进端口清单）→ `vcpkg format-manifest` 按规范排版 → 提交 ports → `x-add-version` → 提交 versions → rebase 后 push。
 
 - 端口清单的 `version` 一律取 tag：清单里没有该字段就插到 `name` 之后，有就覆盖，并清掉 `port-version`（新版本归零，vcpkg 惯例是省略）。源仓 `vcpkg.json` 不需要写 `version`，写了也只在和 tag 不一致时给个 warning。
 - 端口清单的 `features` 以源仓 `vcpkg.json` 为准：同名 feature 会被覆盖，端口专有 feature（如 `cxx23`）保留；源仓没有 `vcpkg.json` 时只跳过这一步。
+- 端口清单的 `dependencies` 以源仓 `vcpkg.json` 为准：源仓删掉的依赖端口也删掉；端口专有的 `host` 依赖（`vcpkg-cmake` / `vcpkg-cmake-config`）保留。源仓没有 `dependencies` 时不动。
 - CI 不构建端口，能否编过要本地先确认。
 - 多个源仓同时发布会在 registry 上撞写，靠 `pull --rebase` + 5 次重试兜底，真冲突会失败。

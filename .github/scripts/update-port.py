@@ -2,7 +2,7 @@
 """把源仓的一个 release 发布到 registry 的 ports/<port>。
 
 流程：解析 tag 到 40 位 sha → 校验 tag 已合入源仓分支 → 按 sha 算 archive 的 sha512 →
-改端口的 portfile.cmake / vcpkg.json（features 从源仓清单同步）→ 提交 → x-add-version →
+改端口的 portfile.cmake / vcpkg.json（dependencies 与 features 从源仓清单同步）→ 提交 → x-add-version →
 提交版本库 → rebase 重试推送。
 
 只依赖 python3 标准库和 git；vcpkg 优先用 $VCPKG_INSTALLATION_ROOT，否则临时克隆。
@@ -136,6 +136,32 @@ def ordered_manifest(obj: dict) -> dict:
     return ordered
 
 
+def dependency_names(dependencies: list) -> set[str]:
+    return {dep if isinstance(dep, str) else dep.get("name", "") for dep in dependencies}
+
+
+def sync_dependencies(obj: dict, source_manifest: dict | None) -> None:
+    """源仓清单的 dependencies 是依赖的唯一事实来源；端口专有的 host 工具（vcpkg-cmake 等）保留。"""
+    source_dependencies = (source_manifest or {}).get("dependencies")
+    if not source_dependencies:
+        return
+    source_names = dependency_names(source_dependencies)
+    port_dependencies = obj.get("dependencies") or []
+    kept = [
+        dep for dep in port_dependencies
+        if isinstance(dep, dict) and dep.get("host") and dep.get("name") not in source_names
+    ]
+    kept_names = dependency_names(kept)
+    port_names = dependency_names(port_dependencies)
+    for name in sorted(port_names - source_names - kept_names):
+        print(f"drop dependency: {name}")
+    for name in sorted(source_names - port_names):
+        print(f"add dependency: {name}")
+    for name in sorted(kept_names):
+        print(f"keep port-only host dependency: {name}")
+    obj["dependencies"] = list(source_dependencies) + kept
+
+
 def rewrite_manifest(manifest: Path, version: str, source_manifest: dict | None) -> None:
     obj = json.loads(manifest.read_text(encoding="utf-8"))
 
@@ -150,6 +176,8 @@ def rewrite_manifest(manifest: Path, version: str, source_manifest: dict | None)
     obj["version"] = version
     # 发布新版本时 port-version 归零，而 vcpkg 的惯例是省略 0
     obj.pop("port-version", None)
+
+    sync_dependencies(obj, source_manifest)
 
     # 源仓 vcpkg.json 的 features 是「这个包支持哪些特性」的唯一事实来源：
     # 同名 feature 以源仓为准覆盖，端口专有 feature（如 cxx23）保留。
